@@ -15,21 +15,21 @@ Define table as
 
 ```postgresql
 create foreign table schema.table_name (
-    "_id" varchar options (rowid 'true'), -- column used as rowid, may be any name, 
-    -- should appear only one
+    "_id" varchar options (rowid 'true'),                       -- column used as rowid, may be any name, 
+                                                                -- should appear only onece
     "Some text column" varchar,
     "Some numeric column" numeric,
     "Some date column" date,
-    "Some complex column" json, -- best for complex fields
+    "Some complex column" json,                                 -- can be used for complex fields but see example below 
     "Some json nullable column" json options (nulljson 'true'), -- keep nulls as json ('null'::json instead of null::json)
-    "Some computed column" varchar options (computed) , -- column that won't be modified with update
-    -- may appear multiple times
-    ) server multicorn_airtable_srv options (
-    api_key '...', -- api access key
-    base_key '...', -- database identifier
-    table_name '...', -- name of table to read from
-    view_name '...' -- optional view name, if not present raw table will be read
-    );
+    "Some computed column" varchar options (computed 'true')    -- column that won't be modified with update
+                                                                -- may appear multiple times
+) server multicorn_airtable_srv options (
+    api_key '...',      -- api access key
+    base_key '...',     -- database identifier
+    table_name '...',   -- name of table to read from
+    view_name '...'     -- optional view name, if not present raw table will be read
+);
 ```
 
 If complex column - like `Collaborator` - appears in table it is read from AirTable API as a `json` and could be treated as `json` or as a complex, custom defined type.
@@ -44,11 +44,11 @@ create type AirtableCollaborator as
 create foreign table schema.table_name (
     "_id" varchar options (rowid 'true'),
     "editor" AirtableCollaborator options (complextype_fields 'id,email,name', complextype_send 'email')
-    ) server multicorn_airtable_srv options (
+) server multicorn_airtable_srv options (
     api_key '...',
     base_key '...',
     table_name '...'
-    );
+);
 
 ```
 
