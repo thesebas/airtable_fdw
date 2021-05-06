@@ -10,10 +10,17 @@ try:
 except Exception:
     long_description = ''
 
+
+version_from_github_ref = os.getenv('GITHUB_REF', None)
+if version_from_github_ref is not None:
+    version = version_from_github_ref[10:]
+else:
+    version = '0.0.1-dev'
+
 setup(
     name='airtable_fdw',
     packages=find_packages('.'),
-    version='0.1.0',
+    version=version,
     license='MIT',
     description='Airtable Multicorn FDW for Postgres',
     long_description=long_description,
