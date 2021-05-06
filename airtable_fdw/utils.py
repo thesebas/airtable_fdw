@@ -7,6 +7,10 @@ except ImportError:
         print("%s: %s" % (level, text))
 
 
+def first(items, pred):
+    return next((i for i in items if pred(i)), None)
+
+
 def quals_to_formula(quals):
     formula_parts = []
     for q in quals:
