@@ -56,3 +56,15 @@ create foreign table schema.table_name (
 where:
 * `complextype_fields 'id,email,name'` indicates how record string should be constructed from `json` - so `{"id": "someid", "email": "me@example.com", "name":"My Name"}` will be converted to `(someid,me@example.com,My Name)` and will be correctly casted to `AirtableCollaborator` type.
 * `complextype_send 'email'` means that when this field is modified only `email` field will be sent to API
+
+## Features
+
+* Configurable to read from given base / table / view
+* SQL `WHERE` clause transformed to `formula` query (so number of requests to API is optimized)
+* Batch `INSERT`/`UPDATE`/`DELETE`
+* support for complex types - json is parsed to complex type on read (`SELECT`), and single, selected field is set on write (`INSERT`, `UPDATE`) 
+
+## Usage Tips
+
+* Use `AND` in `WHERE` clause whenever possible, `OR`s are not handled well (at all?) by *multicorn* so unconditional queries are sent to Airtable (watch the quota!).
+* If `OR` is required try to replace it with  `IN (...)`
