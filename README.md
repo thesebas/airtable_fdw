@@ -28,7 +28,8 @@ create foreign table schema.table_name (
     api_key '...',      -- api access key
     base_key '...',     -- database identifier
     table_name '...',   -- name of table to read from
-    view_name '...'     -- optional view name, if not present raw table will be read
+    view_name '...',    -- optional view name, if not present raw table will be read
+    rowid_column '...'  -- optional rowid column name will be used if no column has `rowid` option set 
 );
 ```
 

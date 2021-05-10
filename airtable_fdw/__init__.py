@@ -1,7 +1,7 @@
 import datetime
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Iterator
 
 from airtable import Airtable
 
@@ -20,14 +20,16 @@ def date_datetime(column_definition: ColumnDefinition, value: [datetime.datetime
     return value
 
 
-def complextype_dict_to_record(column_definition: ColumnDefinition, value: Dict[str, Any]):
+def complextype_dict_to_record(column_definition: ColumnDefinition, value: Dict[str, Any]) -> str:
     if value is None:
         return None
     fields_order = column_definition.options.get('complextype_fields', '').split(',')
     return "(%s)" % ",".join([value.get(field_name, None) for field_name in fields_order])
 
 
-def complextype_recordstr_to_value(column_definition: ColumnDefinition, value: str):
+def complextype_recordstr_to_value(column_definition: ColumnDefinition, value: str) -> Any:
+    if value is None:
+        return None;
     fields_order = column_definition.options.get('complextype_fields', '').split(',')
     values = value[1:-1].split(',')
 
@@ -37,7 +39,7 @@ def complextype_recordstr_to_value(column_definition: ColumnDefinition, value: s
     return ret
 
 
-def quals_contains_get_by_rowid(rowid, quals: List[Qual]):
+def quals_contains_get_by_rowid(rowid, quals: List[Qual]) -> bool:
     for qual in quals:
         if qual.field_name == rowid:
             if not qual.is_list_operator and qual.operator == '=':
@@ -49,7 +51,7 @@ def quals_contains_get_by_rowid(rowid, quals: List[Qual]):
     return False
 
 
-def extract_rowids_from_quals(rowid, quals: List[Qual]):
+def extract_rowids_from_quals(rowid, quals: List[Qual]) -> List:
     return [
         qual.value for qual in quals if qual.field_name == rowid and ((not qual.is_list_operator and qual.operator == '=') or (qual.is_list_operator and qual.operator[0] == '='))
     ]
@@ -95,11 +97,20 @@ class AirtableFDW(ForeignDataWrapper):
         self.view_name = fdw_options.get('view_name', None)
 
         rowid_column = first(fdw_columns.values(), lambda definition: 'rowid' in definition.options)
-        if rowid_column is None:
-            log("AirtableFDW::init - 'rowid' column not defined, modify operations not possible", logging.WARNING)
-        else:
+
+        if rowid_column is not None:
             self._rowid_column = rowid_column.column_name
             log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.INFO)
+        else:
+            rowid_column = fdw_options.get('rowid_column', None)
+            if rowid_column is not None:
+                if rowid_column not in fdw_columns:
+                    log("AirtableFDW::init - invalid 'rowid_column' option, modify operations not possible", logging.WARNING)
+                else:
+                    self._rowid_column = rowid_column
+                    log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.INFO)
+            else:
+                log("AirtableFDW::init - 'rowid' column not defined, modify operations not possible", logging.WARNING)
 
         self.computed_fields = [definition.column_name for definition in fdw_columns.values() if 'computed' in definition.options]
         log("AirtableFDW::init - computed fields = %s " % self.computed_fields, logging.DEBUG)
@@ -117,7 +128,7 @@ class AirtableFDW(ForeignDataWrapper):
         self.insert_batch = []
         self.delete_batch = []
 
-    def execute(self, quals: List[Qual], columns: Dict, sortkeys: List[SortKey] = None):
+    def execute(self, quals: List[Qual], columns: Dict, sortkeys: List[SortKey] = None) -> Iterator[Dict[str, Any]]:
         log("Airtable::execute(%s, %s, %s)" % (quals, columns, sortkeys), logging.INFO)
 
         fields = [self.columns[key].column_name for key in columns if key not in TECHNICAL_COLUMNS and key != self._rowid_column]
@@ -154,7 +165,7 @@ class AirtableFDW(ForeignDataWrapper):
     def end_scan(self):
         log('Airtable::end_scan()', logging.INFO)
 
-    def can_sort(self, sortkeys: List[SortKey]):
+    def can_sort(self, sortkeys: List[SortKey]) -> List[SortKey]:
         log('Airtable::can_sort(%s)' % repr(sortkeys))
         return [sortkey for sortkey in sortkeys]
 
@@ -167,7 +178,7 @@ class AirtableFDW(ForeignDataWrapper):
             if name not in self.computed_fields and name != self._rowid_column
         }
 
-        self.update_batch.append(fields)
+        self.insert_batch.append(fields)
 
     def update(self, rowid: Any, newvalues: Dict[str, Any]):
         log('Airtable::update(%s, %s)' % (rowid, newvalues), logging.INFO)
@@ -220,7 +231,7 @@ class AirtableFDW(ForeignDataWrapper):
     #     pass
 
     @property
-    def rowid_column(self):
+    def rowid_column(self) -> str:
         if self._rowid_column is None:
             raise NotImplementedError("This FDW does not support the writable API")
 
