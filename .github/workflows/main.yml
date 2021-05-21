@@ -22,7 +22,15 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
+      - name: Install Python dependencies
+        run: pip install black flake8
+        
       - name: Lint Action
         uses: wearerequired/lint-action@v1.9.0
         with:
