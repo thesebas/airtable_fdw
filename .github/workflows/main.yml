@@ -25,4 +25,6 @@ jobs:
 
       - name: Lint Action
         uses: wearerequired/lint-action@v1.9.0
-
+        with:
+          black: true
+          flake8: true
