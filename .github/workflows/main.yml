@@ -26,7 +26,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.5
 
       - name: Install Python dependencies
         run: pip install black flake8
@@ -34,5 +34,4 @@ jobs:
       - name: Lint Action
         uses: wearerequired/lint-action@v1.9.0
         with:
-          black: true
           flake8: true
