@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "airtable_fdw"
-version = "0.3.3"
+version = "0.3.4"
 description = "Airtable Multicorn FDW for Postgres"
 authors = ["Sebastian Szymbor <thesebas@users.noreply.github.com>"]
 readme="README.md"

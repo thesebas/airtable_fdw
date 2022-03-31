@@ -14,7 +14,7 @@ def first(items, pred):
 def quals_to_formula(quals):
     formula_parts = []
     for q in quals:
-        log("quals_to_formula: [%s] [%s] [%s]" % (q.field_name, q.operator, q.value), logging.INFO)
+        log("quals_to_formula: [%s] [%s] [%s]" % (q.field_name, q.operator, q.value), logging.DEBUG)
         if q.is_list_operator:
             subformula_parts = []
             operator = q.operator[0]
