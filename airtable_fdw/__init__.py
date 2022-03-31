@@ -116,7 +116,7 @@ class AirtableFDW(ForeignDataWrapper):
         log("AirtableFDW::init - computed fields = %s " % self.computed_fields, logging.DEBUG)
 
         self.airtable = Airtable(
-            base_key=base_key,
+            base_id=base_key,
             table_name=table_name,
             api_key=api_key,
         )
