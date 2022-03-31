@@ -11,7 +11,7 @@ from multicorn.utils import log_to_postgres as log
 
 __all__ = ['AirtableFDW']
 
-log("AirtableFDW imported", logging.INFO)
+log("AirtableFDW imported", logging.DEBUG)
 
 
 def date_datetime(column_definition: ColumnDefinition, value: [datetime.datetime, str]) -> str:
@@ -88,7 +88,7 @@ class AirtableFDW(ForeignDataWrapper):
     def __init__(self, fdw_options: Dict, fdw_columns: Dict[str, ColumnDefinition]):
         super().__init__(fdw_options, fdw_columns)
 
-        log("AirtableFDW::init(%s, %s)" % (repr(fdw_options), repr(fdw_columns)), logging.INFO)
+        log("AirtableFDW::init(%s, %s)" % (repr(fdw_options), repr(fdw_columns)), logging.DEBUG)
 
         base_key = fdw_options.get('base_key')
         api_key = fdw_options.get('api_key')
@@ -100,7 +100,7 @@ class AirtableFDW(ForeignDataWrapper):
 
         if rowid_column is not None:
             self._rowid_column = rowid_column.column_name
-            log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.INFO)
+            log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.DEBUG)
         else:
             rowid_column = fdw_options.get('rowid_column', None)
             if rowid_column is not None:
@@ -108,7 +108,7 @@ class AirtableFDW(ForeignDataWrapper):
                     log("AirtableFDW::init - invalid 'rowid_column' option, modify operations not possible", logging.WARNING)
                 else:
                     self._rowid_column = rowid_column
-                    log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.INFO)
+                    log("AirtableFDW::init - 'rowid' column = %s" % self._rowid_column, logging.DEBUG)
             else:
                 log("AirtableFDW::init - 'rowid' column not defined, modify operations not possible", logging.WARNING)
 
@@ -129,14 +129,14 @@ class AirtableFDW(ForeignDataWrapper):
         self.delete_batch = []
 
     def execute(self, quals: List[Qual], columns: Dict, sortkeys: List[SortKey] = None) -> Iterator[Dict[str, Any]]:
-        log("Airtable::execute(%s, %s, %s)" % (quals, columns, sortkeys), logging.INFO)
+        log("Airtable::execute(%s, %s, %s)" % (quals, columns, sortkeys), logging.DEBUG)
 
         fields = [self.columns[key].column_name for key in columns if key not in TECHNICAL_COLUMNS and key != self._rowid_column]
 
         if quals_contains_get_by_rowid(self._rowid_column, quals):
 
             rowids = extract_rowids_from_quals(self._rowid_column, quals)
-            log("Airtable::execute - get records by recordids - %s" % rowids, logging.INFO)
+            log("Airtable::execute - get records by recordids - %s" % rowids, logging.DEBUG)
             records = (self.airtable.get(rowid) for rowid in rowids)
         else:
 
@@ -163,14 +163,14 @@ class AirtableFDW(ForeignDataWrapper):
             yield row
 
     def end_scan(self):
-        log('Airtable::end_scan()', logging.INFO)
+        log('Airtable::end_scan()', logging.DEBUG)
 
     def can_sort(self, sortkeys: List[SortKey]) -> List[SortKey]:
         log('Airtable::can_sort(%s)' % repr(sortkeys))
         return [sortkey for sortkey in sortkeys]
 
     def insert(self, values: Dict[str, Any]):
-        log('Airtable::insert(%s)' % (values,), logging.INFO)
+        log('Airtable::insert(%s)' % (values,), logging.DEBUG)
 
         fields = {
             name: convert_pg_to_at(self.columns.get(name), value)
@@ -181,7 +181,7 @@ class AirtableFDW(ForeignDataWrapper):
         self.insert_batch.append(fields)
 
     def update(self, rowid: Any, newvalues: Dict[str, Any]):
-        log('Airtable::update(%s, %s)' % (rowid, newvalues), logging.INFO)
+        log('Airtable::update(%s, %s)' % (rowid, newvalues), logging.DEBUG)
 
         fields = {
             name: convert_pg_to_at(self.columns.get(name), value)
@@ -192,14 +192,14 @@ class AirtableFDW(ForeignDataWrapper):
         self.update_batch.append(dict(id=rowid, fields=fields))
 
     def delete(self, rowid: Any):
-        log('Airtable::delete(%s)' % (rowid,), logging.INFO)
+        log('Airtable::delete(%s)' % (rowid,), logging.DEBUG)
         self.delete_batch.append(rowid)
 
     def end_modify(self):
         log(
             'Airtable::end_modify() - update_count %d, insert_count %d, delete_count %d' %
             (len(self.update_batch), len(self.insert_batch), len(self.delete_batch)),
-            logging.INFO
+            logging.DEBUG
         )
         log('Airtable::end_modify() - updates: %s' % repr(self.update_batch), logging.DEBUG)
         log('Airtable::end_modify() - inserts: %s' % repr(self.insert_batch), logging.DEBUG)
@@ -235,5 +235,5 @@ class AirtableFDW(ForeignDataWrapper):
         if self._rowid_column is None:
             raise NotImplementedError("This FDW does not support the writable API")
 
-        log('Airtable::rowid_column()', logging.INFO)
+        log('Airtable::rowid_column()', logging.DEBUG)
         return self._rowid_column
