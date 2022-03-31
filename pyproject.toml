@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "airtable_fdw"
+version = "0.3.2"
+description = "Airtable Multicorn FDW for Postgres"
+authors = ["Sebastian Szymbor <thesebas@users.noreply.github.com>"]
+readme="README.md"
+license='MIT'
+
+classifiers=[
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3"
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+airtable-python-wrapper = "0.15.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.1"
+#multicorn = {git="https://github.com/Segfault-Inc/Multicorn", tag="1.4.0"}
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
