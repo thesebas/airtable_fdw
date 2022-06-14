@@ -237,3 +237,5 @@ class AirtableFDW(ForeignDataWrapper):
 
         log('Airtable::rowid_column()', logging.DEBUG)
         return self._rowid_column
+
+    # test3
